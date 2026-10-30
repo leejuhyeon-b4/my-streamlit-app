@@ -28,7 +28,7 @@ if st.button("변환하기"):
             voice="nova",
             input=text
         )
-        audio_bytes = speech.content
+    
 
         # 음성 출력
         st.markdown("### 🔊 음성 재생")
