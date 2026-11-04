@@ -2,9 +2,10 @@
 import os, base64, json, requests
 import streamlit as st
 from openai import OpenAI
+from google.oauth2.credentials import Credentials
 
 from priority import priority_prompt
-from calendar_utils import calendar_prompt, add_calendar_event
+from calendar_utils import calendar_prompt, register_calendar_tasks
 
 
 # OpenAI 클라이언트 생성
@@ -13,7 +14,7 @@ client = OpenAI()
 # 페이지 설정
 st.set_page_config(page_title="음성 AI 서비스", page_icon="🤖", layout="wide")
 st.title("음성 인식 AI 서비스")
-st.write("음성로 질문하시면 답변해 드립니다.")
+st.write("음성으로 질문하시면 답변해 드립니다.")
 
 # 역할 지정
 sys_role = """
@@ -29,11 +30,14 @@ sys_role = """
 - 한국어로 정중하고 간결하게 답변합니다.
 - 회의록에 없는 내용은 지어내지 않습니다.
 - 요약을 주제 → 논의 내용 → 결정 사항 순서로 구역을 나눠서 진행합니다.
-- 김 대리 담당 업무는 요약과 별도로 정리하고, 업무마다 업무명, 세부 내용, 기한을 함께 적습니다. 기한이 언급되지 않은 업무는 '기한 미정'으로 표시합니다.
+- 김 대리 담당 업무는 요약과 별도로 정리하고, 업무마다 업무명, 세부 내용, 기한을 함께 적습니다.
+- 기한이 언급되지 않은 업무는 '기한 미정'으로 표시합니다.
 - 결정 사항에는 예산, 일정, 채널처럼 구체적인 수치와 항목을 포함합니다.
 - 업무 세부 내용에는 회의에서 언급된 방향과 조건을 포함합니다.
-- 기한은 회의에서 해당 업무에 대해 명시적으로 언급된 경우에만 적습니다. 추측하지 않습니다.
-- 이메일은 김 대리가 요청한 경우에만 보내고 이메일 본문은 마크다운 기호 없이 작성합니다.
+- 기한은 회의에서 해당 업무에 대해 명시적으로 언급된 경우에만 적습니다.
+- 추측하지 않습니다.
+- 이메일은 김 대리가 요청한 경우에만 보냅니다.
+- 이메일 본문은 마크다운 기호 없이 작성합니다.
 """
 
 # 상태 초기화
@@ -42,6 +46,7 @@ if "messages" not in st.session_state:
 
 if "meeting_text" not in st.session_state:
     st.session_state.meeting_text = ""
+
 
 # 지시 영역
 with st.form("task_form"):
@@ -68,15 +73,15 @@ if submit:
 
     # 시스템 메시지
     system_content = sys_role
+
     if meeting_text:
         system_content += f"\n\n다음 내용을 참고하세요:\n{meeting_text}"
 
-    
     # 이전 대화 기록 불러오기
     input_messages = [
         {"role": "system", "content": system_content}
     ] + st.session_state.messages
-    
+
     # STT: 음성 인식
     transcript = client.audio.transcriptions.create(
         model="gpt-transcribe",
@@ -87,7 +92,9 @@ if submit:
     voice_command = transcript.text.strip()
     st.write("인식된 음성:", voice_command)
 
-    # 회의록 음성 명령 인식
+    is_calendar_command = False
+
+    # 회의록 음성 명령
     if "회의록" in voice_command:
 
         if not meeting_text:
@@ -106,8 +113,8 @@ if submit:
         회의록에 없는 내용은 추측하지 마세요.
         기한이 없다면 '기한 미정'으로 표시하세요.
         """
-        
-    # 우선순위 음성 명령 인식
+
+    # 우선순위 음성 명령
     elif "우선순위" in voice_command.replace(" ", ""):
 
         if not meeting_text:
@@ -116,7 +123,7 @@ if submit:
 
         user_input = priority_prompt
 
-    # 캘린더 음성 명령 인식
+    # 캘린더 음성 명령
     elif "캘린더" in voice_command.replace(" ", ""):
 
         if not meeting_text:
@@ -124,6 +131,7 @@ if submit:
             st.stop()
 
         user_input = calendar_prompt
+        is_calendar_command = True
 
     else:
         user_input = voice_command
@@ -147,6 +155,38 @@ if submit:
         )
 
         answer = response.output_text
+
+    # 캘린더 음성 명령이면 실제 일정 자동 등록
+    if is_calendar_command:
+
+        if st.session_state.get("calendar_saved") == meeting_text:
+            answer += "\n\n이미 등록한 회의록입니다."
+
+        else:
+            try:
+                credentials = Credentials.from_authorized_user_info(
+                    json.loads(st.secrets["calendar_oauth_json"])
+                )
+
+                results = register_calendar_tasks(
+                    credentials, answer
+                )
+
+                if results:
+                    st.session_state.calendar_saved = meeting_text
+                    answer += "\n\n### Google Calendar 등록 완료"
+
+                    for title, link in results:
+                        answer += f"\n- [{title}]({link})"
+
+                else:
+                    answer += "\n\n등록할 일정을 찾지 못했습니다."
+
+            except Exception as e:
+                answer += (
+                    "\n\nGoogle Calendar 등록 중 오류가 발생했습니다."
+                    f"\n오류 유형: {type(e).__name__}"
+                )
 
     # 대화 기록 저장
     st.session_state.messages.append({
