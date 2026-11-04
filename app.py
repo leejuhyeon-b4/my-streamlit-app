@@ -477,12 +477,12 @@ if page == PAGES[1]:
                     )
 
                     
-                    # ① 아이젠하워 매트릭스
-                    st.markdown("#### 🧭 아이젠하워 매트릭스")
+                  #  아이젠하워 매트릭스
+                    st.markdown("#### 📊 업무 우선순위 분석 결과")
 
                     st.caption(
-                        "긴급도 × 중요도에 따라 "
-                        "김 대리의 업무를 4개 영역으로 분류합니다."
+                        "회의록에 배정된 업무를 긴급도와 중요도에 따라 분류하고, "
+                        "업무별 실행 방향을 안내합니다."
                     )
 
                     def show_quadrant(title, urgent, important, guide):
@@ -491,7 +491,6 @@ if page == PAGES[1]:
                             (df_task["긴급도"] == urgent)
                             & (df_task["중요도"] == important)
                         ]
-
                         with st.container(border=True):
 
                             st.markdown(f"**{title}**")
