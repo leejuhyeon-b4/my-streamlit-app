@@ -188,13 +188,20 @@ priority_template = """
 
 
 # 긴급도 × 중요도 → 분류 (파이썬으로 정해서 결과 일관되게)
+
 def classify(urgent, important):
     if urgent == "높음" and important == "높음":
-        return "즉시 착수"
-    elif important == "높음":
-        return "순차 진행"
+        return "Q1 · 즉시 착수"
+
+    elif urgent == "낮음" and important == "높음":
+        return "Q2 · 일정 확보"
+
+    elif urgent == "높음" and important == "낮음":
+        return "Q3 · 신속 처리 검토"
+
     else:
-        return "후순위 검토"
+        return "Q4 · 후순위 검토"
+
 
 
 # ── 에이블에게 질문하기 (음성·텍스트 대화 공통) ──
@@ -469,30 +476,75 @@ if page == PAGES[1]:
                         axis=1
                     )
 
-                    st.markdown("#### 🗂️ 우선순위 가이드")
+                    
+                    # ① 아이젠하워 매트릭스
+                    st.markdown("#### 🧭 아이젠하워 매트릭스")
 
-                    cols = st.columns(3)
+                    st.caption(
+                        "긴급도 × 중요도에 따라 "
+                        "김 대리의 업무를 4개 영역으로 분류합니다."
+                    )
 
-                    for col, group, icon in zip(
-                        cols,
-                        ["즉시 착수", "순차 진행", "후순위 검토"],
-                        ["🔴", "🟡", "🔵"]
-                    ):
+                    def show_quadrant(title, urgent, important, guide):
 
-                        col.markdown(f"**{icon} {group}**")
-
-                        tasks = df_task[
-                            df_task["분류"] == group
+                        selected_tasks = df_task[
+                            (df_task["긴급도"] == urgent)
+                            & (df_task["중요도"] == important)
                         ]
 
-                        if tasks.empty:
-                            col.caption("해당 업무 없음")
+                        with st.container(border=True):
 
-                        for _, t in tasks.iterrows():
-                            col.info(
-                                f"**{t['업무명']}**\n\n"
-                                f"⏰ {t['기한']}"
-                            )
+                            st.markdown(f"**{title}**")
+                            st.caption(guide)
+
+                            if selected_tasks.empty:
+                                st.write("해당 업무 없음")
+
+                            else:
+                                for _, task in selected_tasks.iterrows():
+                                    st.markdown(
+                                        f"- **{task['업무명']}**"
+                                        f"  \n  ⏰ {task['기한']}"
+                                    )
+
+                    # 첫 번째 줄: 중요도 높음
+                    col1, col2 = st.columns(2)
+
+                    with col1:
+                        show_quadrant(
+                            "🔴 Q1 · 즉시 착수",
+                            "높음",
+                            "높음",
+                            "중요하고 긴급한 업무"
+                        )
+
+                    with col2:
+                        show_quadrant(
+                            "🔵 Q2 · 일정 확보",
+                            "낮음",
+                            "높음",
+                            "중요하지만 긴급하지 않은 업무"
+                        )
+
+                    # 두 번째 줄: 중요도 낮음
+                    col3, col4 = st.columns(2)
+
+                    with col3:
+                        show_quadrant(
+                            "🟠 Q3 · 신속 처리 검토",
+                            "높음",
+                            "낮음",
+                            "긴급하지만 중요도가 낮은 업무"
+                        )
+
+                    with col4:
+                        show_quadrant(
+                            "⚪ Q4 · 후순위 검토",
+                            "낮음",
+                            "낮음",
+                            "중요도와 긴급도가 낮은 업무"
+                        )
+
 
                     # ② 판단 근거
                     st.markdown("#### 📋 판단 근거")
