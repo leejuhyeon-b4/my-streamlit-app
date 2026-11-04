@@ -42,6 +42,7 @@ if "meeting_text" not in st.session_state:
 # 지시 영역
 with st.form("task_form"):
     uploaded_file = st.file_uploader("텍스트 파일 업로드", type=["txt"])
+    user_text = st.text_area("텍스트로 지시하기")
     audio_value = st.audio_input("무엇을 도와드릴까요?")
     submit = st.form_submit_button("실행")
 
@@ -53,23 +54,28 @@ if submit:
         meeting_text = uploaded_file.read().decode("utf-8")
         st.session_state.meeting_text = meeting_text
     # 녹음이 없으면 녹음 요청
-    if audio_value is None:
-        st.warning("음성을 녹음해주세요.")
+   if not user_text.strip() and audio_value is None:
+        st.warning("텍스트를 입력하거나 음성을 녹음해주세요.")
         st.stop()
-
     # 시스템 메세지
     system_content = sys_role
     if st.session_state.meeting_text:
         system_content += f"\n\n다음 내용을 참고하세요:\n{text}"
     input_messages = [{"role": "system", "content": system_content}]
 
-    # STT: 음성 → 텍스트
+   # 사용자 텍스트 지시
+user_input = user_text.strip()
+
+# STT: 음성이 있을 때만 실행
+if audio_value is not None:
     transcript = client.audio.transcriptions.create(
         model="whisper-1",
-        file=("audio.wav", audio_value, "audio/wav"))
+        file=("audio.wav", audio_value, "audio/wav")
+    )
+    user_input += "\n" + transcript.text
 
-    # 사용자 메시지
-    input_messages.append({"role": "user", "content": transcript.text})
+# 사용자 메시지
+input_messages.append({"role": "user", "content": user_input})
 
     # LLM 호출 및 응답 듣기
     with st.spinner("답변을 준비하고 있습니다..."):
