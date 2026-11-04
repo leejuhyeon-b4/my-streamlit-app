@@ -331,12 +331,11 @@ if st.session_state.calendar_pending:
             "기한이 없습니다. 건너뛸까요?"
         )
 
-        selected = st.radio(
-            "선택",
-            ["예, 건너뛰기", "직접 입력"],
-            key=f"calendar_choice_{i}",
-            label_visibility="collapsed"
-        )
+       selected = st.selectbox(
+    "선택",
+    ["예, 건너뛰기", "직접 입력"],
+    key=f"calendar_choice_{i}"
+)
 
         selected_date = None
 
