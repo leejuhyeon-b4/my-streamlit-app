@@ -4,6 +4,7 @@ import streamlit as st
 from openai import OpenAI
 
 from priority import priority_prompt
+from calendar_utils import calendar_prompt
 
 # OpenAI 클라이언트 생성
 client = OpenAI()
@@ -109,7 +110,14 @@ if submit:
         if not meeting_text:
             st.warning("회의록 파일을 먼저 업로드해주세요.")
             st.stop()
+        # 캘린더 음성 명령 인식
+    elif "캘린더" in voice_command.replace(" ", ""):
 
+        if not meeting_text:
+            st.warning("회의록 파일을 먼저 업로드해주세요.")
+            st.stop()
+
+        user_input = calendar_prompt
         user_input = priority_prompt
 
     else:
