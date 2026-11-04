@@ -14,7 +14,7 @@ client = OpenAI()
 # 페이지 설정
 st.set_page_config(page_title="음성 AI 서비스", page_icon="🤖", layout="wide")
 st.title("음성 인식 AI 서비스")
-st.write("음성으로 질문하시면 답변해 드립니다.")
+st.write("음성 또는 텍스트로 질문하시면 답변해 드립니다.")
 
 # 역할 지정
 sys_role = """
@@ -66,9 +66,9 @@ if submit:
 
     meeting_text = st.session_state.meeting_text
 
-    # 음성 명령 필수
-    if audio_value is None:
-        st.warning("음성으로 지시해주세요.")
+    # 음성 또는 텍스트 입력 확인
+    if audio_value is None and not user_text.strip():
+        st.warning("음성 또는 텍스트로 지시해주세요.")
         st.stop()
 
     # 시스템 메시지
@@ -82,16 +82,21 @@ if submit:
         {"role": "system", "content": system_content}
     ] + st.session_state.messages
 
-    # STT: 음성 인식
-    transcript = client.audio.transcriptions.create(
-        model="gpt-transcribe",
-        file=("audio.wav", audio_value, "audio/wav"),
-        language="ko"
-    )
+    # 음성이 있으면 음성 인식, 없으면 텍스트 사용
+    if audio_value is not None:
+        transcript = client.audio.transcriptions.create(
+            model="gpt-transcribe",
+            file=("audio.wav", audio_value, "audio/wav"),
+            language="ko"
+        )
+        voice_command = transcript.text.strip()
 
-    voice_command = transcript.text.strip()
-    st.write("인식된 음성:", voice_command)
+    else:
+        voice_command = user_text.strip()
 
+    st.write("인식된 명령:", voice_command)
+
+    # 캘린더 명령 여부 초기화
     is_calendar_command = False
 
     # 회의록 음성 명령
@@ -136,8 +141,8 @@ if submit:
     else:
         user_input = voice_command
 
-    # 추가 텍스트 지시
-    if user_text.strip():
+    # 음성과 함께 입력한 텍스트만 추가 지시로 사용
+    if user_text.strip() and audio_value is not None:
         user_input += "\n추가 지시: " + user_text.strip()
 
     # 사용자 메시지 추가
@@ -156,7 +161,7 @@ if submit:
 
         answer = response.output_text
 
-    # 캘린더 음성 명령이면 실제 일정 자동 등록
+    # 캘린더 명령이면 실제 일정 자동 등록
     if is_calendar_command:
 
         if st.session_state.get("calendar_saved") == meeting_text:
