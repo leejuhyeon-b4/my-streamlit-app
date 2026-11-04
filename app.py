@@ -9,7 +9,7 @@ client = OpenAI()
 # 페이지 설정
 st.set_page_config(page_title="음성 AI 서비스", page_icon="🤖", layout="wide")
 st.title("음성 인식 AI 서비스")
-st.write("음성 또는 텍스트로 질문하시면 답변해 드립니다.")
+st.write("음성로 질문하시면 답변해 드립니다.")
 
 # 역할 지정
 sys_role = """
@@ -67,9 +67,11 @@ if submit:
     if meeting_text:
         system_content += f"\n\n다음 내용을 참고하세요:\n{meeting_text}"
 
+    
+    # 이전 대화 기록 불러오기
     input_messages = [
         {"role": "system", "content": system_content}
-    ]
+    ] + st.session_state.messages
 
     # STT: 음성 인식
     transcript = client.audio.transcriptions.create(
@@ -78,6 +80,7 @@ if submit:
     )
 
     voice_command = transcript.text.strip()
+    st.write("인식된 음성:", voice_command)
 
     # 회의록 음성 명령 인식
     if "회의록" in voice_command:
@@ -102,11 +105,11 @@ if submit:
     else:
         user_input = voice_command
 
-    # 텍스트가 있다면 추가 지시로 활용
+    # 추가 텍스트 지시
     if user_text.strip():
         user_input += "\n추가 지시: " + user_text.strip()
 
-    # 사용자 메시지
+    # 사용자 메시지 추가
     input_messages.append({
         "role": "user",
         "content": user_input
@@ -122,5 +125,17 @@ if submit:
 
         answer = response.output_text
 
-        st.subheader("AI 답변")
-        st.write(answer)
+    # 대화 기록 저장
+    st.session_state.messages.append({
+        "role": "user",
+        "content": user_input
+    })
+
+    st.session_state.messages.append({
+        "role": "assistant",
+        "content": answer
+    })
+
+    # 응답 출력
+    st.subheader("AI 답변")
+    st.write(answer)
