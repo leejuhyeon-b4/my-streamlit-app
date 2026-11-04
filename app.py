@@ -54,7 +54,7 @@ if submit:
         meeting_text = uploaded_file.read().decode("utf-8")
         st.session_state.meeting_text = meeting_text
     # 녹음이 없으면 녹음 요청
-   if not user_text.strip() and audio_value is None:
+    if not user_text.strip() and audio_value is None:
         st.warning("텍스트를 입력하거나 음성을 녹음해주세요.")
         st.stop()
     # 시스템 메세지
