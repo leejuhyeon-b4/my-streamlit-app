@@ -294,6 +294,7 @@ if submit:
                     start_date,
                     end_date
                 )
+                
 
                 st.session_state.calendar_done[task_key] = "등록"
 
@@ -314,15 +315,14 @@ if submit:
             )
 
 
+
 # 기한 미정 업무 선택 영역
-# 메인 실행 버튼과 별개로 표시
 if st.session_state.calendar_pending:
 
     st.subheader("📅 기한 미정 업무 확인")
 
     choices = {}
 
-    
     for i, task in enumerate(
         st.session_state.calendar_pending
     ):
@@ -351,3 +351,83 @@ if st.session_state.calendar_pending:
             selected,
             selected_date
         )
+
+    # 선택한 내용을 실제 캘린더에 적용
+    if st.button("선택 내용 적용"):
+
+        missing_date = any(
+            choice == "직접 입력" and day is None
+            for choice, day in choices.values()
+        )
+
+        if missing_date:
+            st.warning("등록할 날짜를 선택해주세요.")
+
+        else:
+            remaining = []
+
+            for task in st.session_state.calendar_pending:
+
+                choice, day = choices[task["key"]]
+
+                # 건너뛰기
+                if choice == "예, 건너뛰기":
+
+                    st.session_state.calendar_done[
+                        task["key"]
+                    ] = "건너뜀"
+
+                    continue
+
+                # 직접 선택한 날짜로 등록
+                try:
+                    credentials = Credentials.from_authorized_user_info(
+                        json.loads(
+                            st.secrets["calendar_oauth_json"]
+                        )
+                    )
+
+                    description = (
+                        task["description"]
+                        + f"\n원래 기한: {task['deadline']}"
+                        + "\n사용자가 직접 지정한 날짜입니다."
+                    )
+
+                    link = add_calendar_event(
+                        credentials,
+                        task["title"],
+                        description,
+                        day
+                    )
+
+                    st.session_state.calendar_done[
+                        task["key"]
+                    ] = "등록"
+
+                    st.session_state.calendar_links.append(
+                        (task["title"], link)
+                    )
+
+                    st.success(
+                        f"캘린더 등록 완료: {task['title']} "
+                        f"({day.isoformat()})"
+                    )
+
+                except Exception as e:
+                    remaining.append(task)
+
+                    st.error(
+                        f"'{task['title']}' 등록 실패: "
+                        f"{type(e).__name__}"
+                    )
+
+            st.session_state.calendar_pending = remaining
+
+
+# Google Calendar 등록 결과 표시
+if st.session_state.calendar_links:
+
+    st.subheader("✅ Google Calendar 등록 내역")
+
+    for title, link in st.session_state.calendar_links:
+        st.markdown(f"- [{title}]({link})")
