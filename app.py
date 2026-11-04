@@ -4,7 +4,9 @@ import streamlit as st
 from openai import OpenAI
 
 from priority import priority_prompt
-from calendar_utils import calendar_prompt
+from calendar_utils import calendar_prompt, add_calendar_event
+from google.oauth2.credentials import Credentials
+from calendar_utils import test_calendar_connection
 
 # OpenAI 클라이언트 생성
 client = OpenAI()
@@ -158,3 +160,15 @@ if submit:
     # 응답 출력
     st.subheader("AI 답변")
     st.write(answer)
+
+# Google Calendar 연동 테스트
+if st.button("Google Calendar 연결 테스트"):
+
+    calendar_credentials = Credentials.from_authorized_user_info(
+        json.loads(st.secrets["calendar_oauth_json"])
+    )
+
+    link = test_calendar_connection(calendar_credentials)
+
+    st.success("일정 등록 완료!")
+    st.write(link)
