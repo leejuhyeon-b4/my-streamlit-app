@@ -75,11 +75,12 @@ if submit:
     input_messages = [
         {"role": "system", "content": system_content}
     ] + st.session_state.messages
-
+    
     # STT: 음성 인식
     transcript = client.audio.transcriptions.create(
-        model="whisper-1",
-        file=("audio.wav", audio_value, "audio/wav")
+        model="gpt-transcribe",
+        file=("audio.wav", audio_value, "audio/wav"),
+        language="ko"
     )
 
     voice_command = transcript.text.strip()
