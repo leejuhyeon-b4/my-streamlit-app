@@ -43,28 +43,3 @@ def add_calendar_event(calendar_credentials, title, description, due_date):
 
     return created_event.get("htmlLink")
 
-# Google Calendar 연동 테스트
-def test_calendar_connection(calendar_credentials):
-
-    # Google Calendar 연결
-    calendar_service = build(
-        "calendar",
-        "v3",
-        credentials=calendar_credentials
-    )
-
-    # 테스트 일정
-    event = {
-        "summary": "[테스트] 김대리 업무 관리",
-        "description": "Google Calendar API 연동 테스트입니다.",
-        "start": {"date": "2026-11-05"},
-        "end": {"date": "2026-11-06"}
-    }
-
-    # Google Calendar에 일정 등록
-    created_event = calendar_service.events().insert(
-        calendarId="primary",
-        body=event
-    ).execute()
-
-    return created_event.get("htmlLink")

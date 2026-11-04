@@ -5,8 +5,7 @@ from openai import OpenAI
 
 from priority import priority_prompt
 from calendar_utils import calendar_prompt, add_calendar_event
-from google.oauth2.credentials import Credentials
-from calendar_utils import test_calendar_connection
+
 
 # OpenAI 클라이언트 생성
 client = OpenAI()
@@ -107,13 +106,17 @@ if submit:
         회의록에 없는 내용은 추측하지 마세요.
         기한이 없다면 '기한 미정'으로 표시하세요.
         """
-        # 우선순위 음성 명령 인식
+        
+    # 우선순위 음성 명령 인식
     elif "우선순위" in voice_command.replace(" ", ""):
 
         if not meeting_text:
             st.warning("회의록 파일을 먼저 업로드해주세요.")
             st.stop()
-        # 캘린더 음성 명령 인식
+
+        user_input = priority_prompt
+
+    # 캘린더 음성 명령 인식
     elif "캘린더" in voice_command.replace(" ", ""):
 
         if not meeting_text:
@@ -121,7 +124,6 @@ if submit:
             st.stop()
 
         user_input = calendar_prompt
-        user_input = priority_prompt
 
     else:
         user_input = voice_command
@@ -160,15 +162,3 @@ if submit:
     # 응답 출력
     st.subheader("AI 답변")
     st.write(answer)
-
-# Google Calendar 연동 테스트
-if st.button("Google Calendar 연결 테스트"):
-
-    calendar_credentials = Credentials.from_authorized_user_info(
-        json.loads(st.secrets["calendar_oauth_json"])
-    )
-
-    link = test_calendar_connection(calendar_credentials)
-
-    st.success("일정 등록 완료!")
-    st.write(link)
