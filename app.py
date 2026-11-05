@@ -1287,7 +1287,7 @@ with st.sidebar:
         unsafe_allow_html=True
     )
 
-elif page == PAGES[6]:
+if page == PAGES[6]:
     st.subheader("🗂️ 회의 자료실")
 
     archives = st.session_state.archived_meetings
@@ -1475,3 +1475,4 @@ elif page == PAGES[6]:
                        file_name="able_tasks.csv", mime="text/csv", use_container_width=True)
     with st.expander("보고서 미리보기"):
         st.markdown(_report)
+
