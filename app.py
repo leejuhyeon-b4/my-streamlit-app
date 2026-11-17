@@ -11,6 +11,10 @@ from langchain_chroma import Chroma
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnableLambda
+
+from review_panel import render_review_sidebar
+from followup_questions import render_followup_questions
+from big_project_planner import render_big_project_planner
 # ==========================================
 # 1. Streamlit 기본 설정
 # ==========================================
@@ -145,7 +149,7 @@ with st.sidebar:
     st.caption(
         "PDF가 변경될 때만 RAG 파이프라인을 다시 구성합니다"
     )
-
+    render_review_sidebar()
 
 # ==========================================
 # 5. PDF 업로드 → 임시 경로 생성
@@ -227,28 +231,12 @@ st.success(
 
 
 # ==========================================
-# 7. 추천 질문
+# 7. 빅프 플래
 # ==========================================
 
-st.subheader("💡 추천 질문")
-
-suggestions = [
-    "미니프로젝트와 빅프로젝트는 어떤 점이 다른가요?",
-    "빅프로젝트 주차별 권장 진행 흐름을 설명해 주세요",
-    "백서에 없는 규정은 어떻게 확인해야 하나요?",
-]
-
-columns = st.columns(3)
-selected_question = None
-
-for idx, suggestion in enumerate(suggestions):
-
-    if columns[idx].button(
-        suggestion,
-        key=f"sample_question_{idx}",
-        use_container_width=True
-    ):
-        selected_question = suggestion
+render_big_project_planner(
+    st.session_state.rag_chain
+)
 
 
 # ==========================================
@@ -269,7 +257,10 @@ user_input = st.chat_input(
     "백서에 대해 질문해 주세요"
 )
 
-question = selected_question or user_input
+question = (
+    st.session_state.pop("pending_question", None)
+    or user_input
+)
 
 if question:
 
@@ -305,4 +296,6 @@ st.caption(
     "후속 질문의 맥락 이해는 별도 구현해야 합니다"
 )
 
-
+render_followup_questions(
+    st.session_state.messages
+)
