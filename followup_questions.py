@@ -39,7 +39,7 @@ def render_followup_questions(messages):
     st.divider()
     st.subheader("✨ 다음 질문 추천")
     auto = st.toggle(
-        "답변 후 자동 추천 (추가 API 호출)", value=False, key="followups_auto",
+        "답변 후 자동 추천", value=False, key="followups_auto",
         help="OFF 상태에서도 필요한 답변에 대해서만 수동 생성할 수 있습니다.",
     )
 
