@@ -186,7 +186,7 @@ def render_review_sidebar():
                 elif end_date > today:
                     st.caption(f"{subject} 종료 예정: {end_date.isoformat()}")
 
-        
+
         st.divider()
 
         st.link_button(

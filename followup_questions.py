@@ -50,9 +50,13 @@ def render_followup_questions(messages):
         st.caption("질문하고 답변을 받은 뒤 추천을 생성할 수 있어요.")
         return
 
-    last_pair = messages[-2:]
+    # Document 객체(docs)는 JSON 직렬화할 수 없으므로 역할과 본문만 서명에 사용
+    last_pair = [
+        {"role": str(m.get("role", "")), "content": str(m.get("content", ""))}
+        for m in messages[-2:]
+    ]
     signature_text = json.dumps(
-        {"pdf_hash": st.session_state.get("pdf_hash"), "last_pair": last_pair},
+        {"doc_id": st.session_state.get("doc_id"), "last_pair": last_pair},
         ensure_ascii=False,
     )
     signature = hashlib.sha256(signature_text.encode()).hexdigest()

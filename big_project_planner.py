@@ -5,7 +5,7 @@ import streamlit as st
 
 def render_big_project_planner(rag_chain):
     with st.expander("🗓️ 빅프로젝트 맞춤 플래너", expanded=False):
-        st.caption("백서의 1~8주차 권장 진도를 참고해 현재 팀 상황에 맞는 실행안을 만듭니다.")
+        st.caption("백서에서 확인되는 프로젝트 정보를 참고해 1~8주차 팀 실행안을 제안합니다. 백서에 없는 주차별 계획은 AI 제안으로 구분합니다.")
         with st.form("big_project_form"):
             col1, col2 = st.columns(2)
             with col1:
