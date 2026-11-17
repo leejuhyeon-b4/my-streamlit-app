@@ -1,5 +1,6 @@
 
 import streamlit as st
+import hashlib
 
 # ==========================================
 # 1. Streamlit 기본 설정
