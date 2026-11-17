@@ -186,13 +186,17 @@ def render_review_sidebar():
                 elif end_date > today:
                     st.caption(f"{subject} 종료 예정: {end_date.isoformat()}")
 
+        
         st.divider()
-        st.link_button("🤖 ChatGPT 바로가기", "https://chatgpt.com/", use_container_width=True)
-        edu_url = st.text_input(
-            "AIVLE-EDU 접속 주소", key="aivle_edu_url",
-            placeholder="https://... (실제 접속 주소 입력)",
-        ).strip()
-        if edu_url.startswith("https://"):
-            st.link_button("🎓 AIVLE-EDU 바로가기", edu_url, use_container_width=True)
-        elif edu_url:
-            st.caption("https://로 시작하는 접속 주소를 입력해 주세요.")
+
+        st.link_button(
+    "🤖 챗지피티랑 복습하기",
+    "https://chatgpt.com/",
+    use_container_width=True
+)
+
+        st.link_button(
+    "🎓 AIVLE-EDU 바로가기",
+    "https://aivle.edu.kt.co.kr/",
+    use_container_width=True
+)

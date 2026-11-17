@@ -231,16 +231,7 @@ st.success(
 
 
 # ==========================================
-# 7. 빅프 플래
-# ==========================================
-
-render_big_project_planner(
-    st.session_state.rag_chain
-)
-
-
-# ==========================================
-# 8. 이전 대화 출력
+# 7. 이전 대화 출력
 # ==========================================
 
 for message in st.session_state.messages:
@@ -250,7 +241,7 @@ for message in st.session_state.messages:
 
 
 # ==========================================
-# 9. 질문 → RAG 답변
+# 8. 질문 → RAG 답변
 # ==========================================
 
 user_input = st.chat_input(
@@ -299,3 +290,8 @@ st.caption(
 render_followup_questions(
     st.session_state.messages
 )
+
+# ==========================================
+# 9. 빅프 플래너
+# ==========================================
+render_big_project_planner(st.session_state.rag_chain)
