@@ -3,7 +3,14 @@ import os
 import tempfile
 import hashlib
 import streamlit as st
+
 from langchain_pymupdf4llm import PyMuPDF4LLMLoader
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_chroma import Chroma
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnableLambda
 # ==========================================
 # 1. Streamlit 기본 설정
 # ==========================================
