@@ -3,7 +3,7 @@ import os
 import tempfile
 import hashlib
 import streamlit as st
-
+from langchain_pymupdf4llm import PyMuPDF4LLMLoader
 # ==========================================
 # 1. Streamlit 기본 설정
 # ==========================================
